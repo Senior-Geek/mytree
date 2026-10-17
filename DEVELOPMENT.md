@@ -27,7 +27,10 @@ into `main` only once it has been tested locally.
 Prerequisites (same as upstream, see README):
 
 * PHP 8.3–8.6 with `ctype`, `curl`, `gd`, `iconv`, `intl`, `json`, `mbstring`,
-  `pcre`, `pdo`, `session`, `xml` extensions.
+  `pcre`, `pdo`, `session`, `xml` extensions. Installed on this machine via
+  `brew install php composer` (Homebrew's floating `php` formula, currently
+  8.5.11) — not pinned to a specific minor version; re-pin to `php@8.3` only
+  if a future need requires matching an exact production version.
 * [Composer](https://getcomposer.org/)
 * [Node.js](https://nodejs.org/) with npm
 * A database: **SQLite is confirmed supported** by this version of webtrees —
@@ -55,13 +58,90 @@ For quick iteration, PHP's built-in server is sufficient:
 php -S localhost:8080
 ```
 
-Then open <http://localhost:8080> — the setup wizard runs on first visit and
-will ask for database connection details. Point it at a **local, disposable**
-database and data directory (see "Protecting live data" below), not a
-production tree.
-
 For something closer to production, run under Apache or NGINX with URL
 rewriting enabled, per the upstream installation guide.
+
+### Local development installation (SQLite, isolated, fictional data)
+
+This installs a throwaway MyTree instance entirely inside this checkout's
+`data/` directory — a separate SQLite file, config, and cache, with no
+connection to any other webtrees/MyTree installation on this machine. Follow
+this exactly once per checkout (or after a reset, below).
+
+1. Start the dev server (`php -S localhost:8080`, from the repo root) and
+   open <http://localhost:8080>. The setup wizard runs automatically.
+2. Step through: language → environment check (informational) → **database
+   type: SQLite**.
+3. **Database name**: letters, digits, and underscores only (no hyphens —
+   the wizard rejects them silently and just re-shows the same step). Use
+   something like `mytree_dev`. The file lands at `data/mytree_dev.sqlite`,
+   already covered by `data/.gitignore`.
+4. **Administrator account**: use a fictional name/username/email — e.g.
+   name "Test Admin", username `admin`, email `admin@example.test`. This is
+   a local-only account with no connection to any real identity. The
+   `e2e/` test suite (below) expects exactly these values by default; if you
+   choose different ones, update `e2e/fixtures/testData.js` to match.
+5. Finish the wizard, sign in, and create a tree from the Control Panel
+   ("Create a family tree"). Give it a fictional title and the internal name
+   `mytree_dev_test` (the `e2e/` suite creates this automatically if it's
+   missing, but creating it yourself first is fine too).
+6. Populate it with **fictional individuals, families, and sources only** —
+   see "Protecting live genealogy data" below. Never import a real GEDCOM
+   file into this instance.
+7. **Enable auto-accept for the dev admin**, using webtrees' own setting
+   (no code involved): Control Panel → Users → edit the admin user → check
+   "Automatically accept changes made by this user" → save. This is a
+   per-user preference (`auto_accept`, stored in `wt_user_setting`), not a
+   tree setting — webtrees has no tree-level auto-accept, only this
+   per-user one — but since this admin is the only user on the fictional
+   dev tree, enabling it here has the same effect.
+
+By default (and for any *other* user you create), webtrees queues edits as a
+**pending change** requiring explicit acceptance (Control Panel → the tree →
+"Pending changes" → "Accept all changes", or the inline "accept" link next
+to a just-edited record) before they're visible elsewhere in the app (stats,
+search, other views). With step 7 done, the dev admin's edits skip this and
+apply immediately — verified by creating a test individual and confirming no
+pending-change banner appeared.
+
+### Starting, stopping, and resetting the dev install
+
+```bash
+# Start
+php -S localhost:8080                          # from the repo root
+
+# Stop
+# Ctrl-C in the terminal running it, or if backgrounded:
+lsof -ti:8080 -sTCP:LISTEN | xargs kill
+
+# Reset to a blank install (deletes the dev database, config, and cache —
+# this only touches data/, which never contains anything you can't recreate)
+rm -f data/config.ini.php data/*.sqlite
+rm -rf data/cache
+# Then revisit http://localhost:8080 to run the setup wizard again.
+```
+
+A reset deletes the whole SQLite database, which includes the `auto_accept`
+preference set in step 7 above — redo that step after resetting.
+
+### End-to-end tests
+
+[`e2e/`](e2e/) holds a Playwright suite that drives the actual browser
+workflows (create/edit an individual, create a source and attach a citation,
+establish a family relationship, navigate between related records) against
+this local install. It's a separate Node project so its dependencies never
+touch the application's own `package.json`. See [`e2e/README.md`](e2e/README.md)
+for setup and usage — in short:
+
+```bash
+cd e2e
+npm install && npx playwright install chromium   # one-time
+npm test                                          # runs against localhost:8080,
+                                                   # starting it automatically if needed
+```
+
+Rerun this suite after implementing WT-001 or WT-002 to confirm neither
+enhancement broke the existing editing workflows it covers.
 
 ### Running tests and checks
 
@@ -76,6 +156,24 @@ vendor/bin/phpstan                                    # static analysis only
 
 Run `composer ci` before every commit that touches `app/`, `resources/`, or
 `tests/`.
+
+#### Known baseline test failures
+
+As of the upstream commit this fork was created from (`c5ddf7f816`), the
+full suite is 42,652 tests / 237,015 assertions with **2 pre-existing
+failures**, both in `tests/Unit/TreeTest.php`:
+
+* `testImportAndDeleteGedcomFile`
+* `testHasPendingEdits`
+
+Both are reproducible in isolation (`vendor/bin/phpunit tests/Unit/TreeTest.php`)
+and are not caused by anything in this fork — they were present before any
+MyTree-specific change. Treat these two as a known baseline: don't spend time
+re-diagnosing them unless investigating `Tree`/`TreeService` specifically,
+and treat any *new* failure elsewhere as a real regression. Default CLI
+memory (128 MB) is also too low for a full run — use
+`php -d memory_limit=1G vendor/bin/phpunit --no-coverage` (no coverage driver
+is installed; `requireCoverageMetadata="true"` otherwise reports zero tests run).
 
 ## Git workflow
 
