@@ -58,6 +58,25 @@ so it won't conflict with a server you started yourself). Override the URL with
   so the suite is safe to rerun repeatedly against the same dev database
   without colliding with previous runs or with real data.
 
+## Investigation baselines (`investigations/`)
+
+`investigations/` holds specs that document **current** webtrees behaviour,
+**including its limitations**. They're the evidence for investigation
+reports in `../docs/investigations/` (e.g. the Milestone 3A census-household
+walkthrough for WT-001/WT-002).
+
+```bash
+npm run investigate   # uses playwright.investigations.config.js
+```
+
+- They're **not** part of `npm test`; the regression suite stays as it is.
+- They create their own fictional, run-suffixed records, like the regression
+  specs.
+- Some assertions deliberately pin current limitations (e.g. "no warning for
+  a duplicate source"). When an enhancement intentionally changes that
+  behaviour, update the matching assertion and the investigation report
+  together. Don't just delete it.
+
 ## Keeping this out of Git
 
 `.gitignore` in this directory excludes `node_modules/`, Playwright's

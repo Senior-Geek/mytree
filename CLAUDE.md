@@ -18,7 +18,12 @@ prior Gramps-based workflow. Full context: [README.md](README.md),
 - **Prefer modules over core edits.** New functionality belongs in
   `custom-modules/<name>/`, deployed into the git-ignored `modules_v4/` by symlink or
   copy (see `custom-modules/README.md`). Avoid changes to `app/` that would complicate
-  future `upstream/main` merges.
+  future `upstream/main` merges. A core change needs explicit approval and must be
+  isolated, documented, tested, and have its upstream-sync impact explained.
+- **Investigate before implementing.** Before building any enhancement, check what
+  webtrees already does (code + Playwright on the fictional dev tree), write it up in
+  `docs/investigations/`, and revise the spec to cover only genuine gaps. Full policy:
+  `BACKLOG.md` → "Investigate before implementing".
 - `main` is stable; work happens on `development` or feature branches cut from it.
 
 ## Environment
@@ -50,3 +55,12 @@ prior Gramps-based workflow. Full context: [README.md](README.md),
 Proposed enhancements are tracked in `BACKLOG.md`, with full specs in
 `docs/enhancements/WT-*.md`. Do not implement an enhancement unless explicitly asked
 to start it, and don't edit a spec file without discussing the change first.
+
+- WT-001 (Guided census evidence workflow) and WT-002 (Duplicate-aware evidence entry)
+  were re-scoped after the Milestone 3A investigation
+  (`docs/investigations/WT-001-WT-002-workflow-review.md`). Milestone 3B
+  (implementation) is not yet authorised.
+- Use "unlinked" (never "unrelated") for census occupants not tied to a person record.
+- `e2e/investigations/` (`cd e2e && npm run investigate`) records *current* behaviour,
+  including limitations, as a baseline. It's separate from the regression suite; update
+  it deliberately when an enhancement changes that behaviour.

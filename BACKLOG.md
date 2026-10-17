@@ -7,17 +7,50 @@ acceptance criteria, and should not be edited here.
 
 | ID | Title | Priority | Status | Spec |
 |----|-------|----------|--------|------|
-| WT-001 | Create person from source record | High | Proposed — architecture assessed | [docs/enhancements/WT-001-create-person-from-source.md](docs/enhancements/WT-001-create-person-from-source.md) |
-| WT-002 | Attach existing source to person | High | Proposed — architecture assessed | [docs/enhancements/WT-002-attach-existing-source.md](docs/enhancements/WT-002-attach-existing-source.md) |
+| WT-001 | Guided census evidence workflow *(formerly "Create person from source record")* | High | Investigated — scope revised | [docs/enhancements/WT-001-guided-census-evidence-workflow.md](docs/enhancements/WT-001-guided-census-evidence-workflow.md) |
+| WT-002 | Duplicate-aware evidence entry *(formerly "Attach existing source to person")* | High | Investigated — scope revised | [docs/enhancements/WT-002-duplicate-aware-evidence-entry.md](docs/enhancements/WT-002-duplicate-aware-evidence-entry.md) |
+
+Both specs were revised after the Milestone 3A investigation, which found
+most of the original requirements already supported by core webtrees:
+[docs/investigations/WT-001-WT-002-workflow-review.md](docs/investigations/WT-001-WT-002-workflow-review.md).
+Implementation (Milestone 3B) is **not** authorised yet.
 
 ## Status values
 
 * **Proposed** — specification written, not yet assessed against the codebase.
 * **Proposed — architecture assessed** — feasibility reviewed against
   webtrees' existing code; no implementation started.
+* **Investigated — scope revised** — existing functionality checked
+  hands-on (code + Playwright) per the policy below; spec rewritten to
+  cover only genuine gaps; no implementation started.
 * **In progress** — implementation underway on a feature branch.
 * **Done** — merged into `development`.
 * **Deferred** — valid idea, not scheduled.
+
+## Investigate before implementing
+
+Before any enhancement is implemented:
+
+1. **Investigate existing functionality first.** Treat the spec as a
+   statement of the user's problem, not a fixed technical solution. Check
+   the code *and* the running application (Playwright against the fictional
+   dev tree) for features, settings, modules, clipboard/batch operations or
+   workflows that already meet the need.
+2. **Write up the findings** in `docs/investigations/` (existing
+   functionality, how to reach it, verification, confirmed limitations,
+   classification as *already supported / configuration change / usability
+   improvement / new capability*).
+3. **Record current behaviour as a baseline** in `e2e/investigations/`
+   (run with `cd e2e && npm run investigate`), kept separate from the
+   regression suite.
+4. **Revise the spec** to cover only genuine gaps, keeping the original
+   objective and explaining the revision, after discussion with the
+   Project Director.
+5. **Confirm the delivery route**: a custom module by default. A core
+   (`app/`) change only when a module genuinely can't do it, and then
+   isolated, documented, tested, with its upstream-sync implications
+   explained and explicitly approved.
+6. **Get explicit authorisation** before starting implementation.
 
 ## Shared functionality
 
@@ -32,6 +65,14 @@ controllers for sources, media, etc.). Any implementation work should design
 one reusable "search → select → create inline → link" pattern and apply it
 to both enhancements, rather than building two independent features.
 
+*Update after Milestone 3A:* the "search → select" half, inline source
+creation and per-person citation copying already exist in core (see the
+investigation report). The revised WT-001 starts with workflow guidance only;
+inline person creation is a future enhancement. The pieces shared by the
+revised specs are a reusable contextual-help component (WT-001, later
+reusable for other evidence types) and a shared duplicate-candidate service
+(WT-002 sources now; people later).
+
 ### Architectural consideration: duplicate detection (not yet implemented)
 
 Duplicate detection is central to WT-002's fuzzy-matching requirement, and
@@ -39,7 +80,9 @@ also relevant to WT-001's "existing people can be selected without
 duplication" criterion. webtrees has no existing fuzzy-matching equivalent —
 the current admin "Find duplicates" tool (`AdminService::duplicateRecords()`)
 only does exact-match grouping (identical source name; identical date+name
-for individuals). Genuinely fuzzy comparison (e.g. "1851 Census — John
+for individuals), and currently crashes on SQLite (upstream bug; draft report
+held for review in
+[docs/investigations/upstream-bug-sqlite-find-duplicates.md](docs/investigations/upstream-bug-sqlite-find-duplicates.md)). Genuinely fuzzy comparison (e.g. "1851 Census — John
 Marriott Household" vs. "John Marriott, Census 1851") would be new logic.
 
 This is recorded here as a design constraint for whoever implements WT-001
@@ -49,7 +92,8 @@ than each spec growing its own ad hoc duplicate check.
 
 ## Adding a new entry
 
-1. Write the specification in `docs/enhancements/WT-0XX-short-title.md`,
+1. Investigate existing functionality first (see "Investigate before
+   implementing" above). Then write the specification in `docs/enhancements/WT-0XX-short-title.md`,
    following the structure of WT-001/WT-002 (Problem, Required Behavior,
    Acceptance Criteria, Implementation Notes).
 2. Add a row to the table above.
