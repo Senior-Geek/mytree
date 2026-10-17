@@ -1,8 +1,43 @@
+# MyTree
+
+**MyTree** is a personal, customized fork of [webtrees](https://github.com/fisharebest/webtrees) —
+the open-source, collaborative genealogy application. MyTree is maintained by
+Paul Marriott as an independent application for managing his own family history
+research, replacing a prior Gramps-based workflow. It is **not** a Gramps
+extension, plugin, or front end — it is a standalone fork of webtrees.
+
+| | |
+|---|---|
+| Upstream project | <https://github.com/fisharebest/webtrees> |
+| This fork | <https://github.com/Senior-Geek/mytree> |
+| Upstream license | GNU GPL v3 or later — see [LICENSE.md](LICENSE.md) |
+
+## Relationship to upstream webtrees
+
+MyTree tracks `fisharebest/webtrees` as a git `upstream` remote and intends to
+stay close to it, so that security fixes and upstream improvements can be
+merged in with minimal friction. Customizations specific to MyTree are:
+
+* documented in [BACKLOG.md](BACKLOG.md) and `docs/enhancements/`,
+* implemented as self-contained modules under `modules_v4/` wherever the
+  module system allows it, rather than as edits to `app/`, and
+* recorded in [CHANGELOG.md](CHANGELOG.md), which separates MyTree-specific
+  changes from upstream changes pulled in during a sync.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for the branching model, local dev setup,
+and the process for synchronizing with upstream.
+
+All attribution, copyright notices, and the GPLv3 license inherited from
+webtrees are preserved unmodified. MyTree is not affiliated with or endorsed
+by the webtrees development team.
+
+---
+
+## About webtrees (upstream)
+
 ![Latest version](https://img.shields.io/github/v/release/fisharebest/webtrees?sort=semver)
 ![Licence](https://img.shields.io/github/license/fisharebest/webtrees)
 [![Translation status](translate.webtrees.net/widget/webtrees/svg-badge.svg)](https://translate.webtrees.net/projects/webtrees/)
-
-# webtrees — online collaborative genealogy
 
 **webtrees** is a web application for recording, viewing and sharing your family history.
 It imports and exports standard GEDCOM files, making it compatible with every major
@@ -22,7 +57,7 @@ Key features:
 * Module system for extending functionality
 * Multiple family trees in one installation
 
-For user documentation, screenshots and demos visit **<https://webtrees.net/>**.
+For upstream user documentation, screenshots and demos visit **<https://webtrees.net/>**.
 
 This software is licensed under the GNU General Public License v3 or later.
 See [LICENSE.md](LICENSE.md) for the full text.
@@ -33,8 +68,10 @@ See [LICENSE.md](LICENSE.md) for the full text.
 
 ### Download
 
-Download the latest stable release from
+The upstream project publishes stable releases at
 [github.com/fisharebest/webtrees/releases/latest](https://github.com/fisharebest/webtrees/releases/latest).
+MyTree is run from a local checkout of this fork — see [DEVELOPMENT.md](DEVELOPMENT.md)
+for setup instructions specific to this fork.
 
 ### Server requirements
 
@@ -65,7 +102,8 @@ PHP memory and execution time should be scaled to your tree size:
 2. Navigate to the URL in your browser — the setup wizard starts automatically.
 3. Create your first family tree and optionally import a GEDCOM file.
 
-Full installation and upgrade guides are available at <https://webtrees.net/>.
+Full upstream installation and upgrade guides are available at <https://webtrees.net/>.
+For local development installs of MyTree, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ---
 
@@ -80,8 +118,9 @@ app/                        Application source (PSR-4 root: Fisharebest\Webtrees
 ├── Enums/                  PHP enumerations
 ├── Factories/              Object creation (Registry pattern)
 ├── Http/
+│   ├── Controllers/        HTTP controllers (one class per route action)
 │   ├── RequestHandlers/    HTTP controllers (one class per route action)
-│   ├── Middleware/         HTTP controllers (one class per route action)
+│   ├── Middleware/         Cross-cutting request/response concerns
 │   └── Routes/             Route definitions
 ├── Module/                 Modules (charts, reports, sidebars, tabs, themes…)
 ├── Services/               Domain services
@@ -99,7 +138,9 @@ tests/
 
 public/                     Web-accessible assets (compiled CSS/JS, images, fonts)
 data/                       Runtime data (config, GEDCOM files, cache — not in VCS)
-modules_v4/                 Third-party module directory
+modules_v4/                 Module load directory (not in VCS)
+custom-modules/             MyTree module source (tracked; deployed into modules_v4/)
+docs/enhancements/          MyTree enhancement specifications (this fork only)
 ```
 
 ### Namespace and autoloading
@@ -191,7 +232,7 @@ composer ci
 This executes, in order:
 
 | Tool | Purpose | Config file |
-|------|---------|-------------|
+|------|---------|--------------|
 | PHP_CodeSniffer | PSR-12 style enforcement | `phpcs.xml.dist` |
 | PHPUnit | Unit and feature tests | `phpunit.xml.dist` |
 | PHPStan (level 6) | Static analysis | `phpstan.neon.dist` |
@@ -224,7 +265,8 @@ The application uses PSR-15 middleware and request handlers:
 
 1. `index.php` boots the application and dispatches the request.
 2. Routes are defined declaratively in `app/Http/Routes/`.
-3. Each route maps to a request handler in `app/Http/RequestHandlers/`.
+3. Each route maps to a request handler in `app/Http/RequestHandlers/` or
+   `app/Http/Controllers/`.
 4. Middleware provides cross-cutting concerns (authentication, CSRF, etc.).
 
 ### Module system
@@ -232,13 +274,18 @@ The application uses PSR-15 middleware and request handlers:
 Most user-visible features are implemented as modules in `app/Module/`. Modules
 implement one or more interfaces (e.g. `ModuleChartInterface`,
 `ModuleReportInterface`, `ModuleThemeInterface`) and are auto-discovered by the
-`ModuleService`.
+`ModuleService`. Every module implements `ModuleInterface::boot()`, which is
+the extension point used to register custom routes, menu items, tabs, blocks,
+or other hooks without editing core files.
 
-Third-party modules can be placed in `modules_v4/`.
+webtrees loads modules from `modules_v4/`, which is excluded from version
+control. MyTree-specific module **source** is tracked separately in
+[`custom-modules/`](custom-modules/README.md) and deployed into `modules_v4/`
+by symlink or copy — see [DEVELOPMENT.md](DEVELOPMENT.md) for details.
 
 ### Database
 
-webtrees uses Laravel’s Illuminate Database (query builder and schema builder)
+webtrees uses Laravel's Illuminate Database (query builder and schema builder)
 without the full Laravel framework. Supported drivers:
 
 * MySQL / MariaDB
@@ -247,6 +294,15 @@ without the full Laravel framework. Supported drivers:
 * SQL Server
 
 Schema migrations are in `app/Schema/`. The current schema version is tracked in
-`app/Webtrees.php`.
+`app/Webtrees.php` (`Webtrees::SCHEMA_VERSION`).
 
 Table names use a configurable prefix so multiple instances can share a database.
+
+---
+
+## MyTree-specific documentation
+
+* [BACKLOG.md](BACKLOG.md) — index of proposed MyTree enhancements
+* [CHANGELOG.md](CHANGELOG.md) — MyTree change history, separate from upstream
+* [DEVELOPMENT.md](DEVELOPMENT.md) — local environment, git workflow, upstream sync
+* [docs/enhancements/](docs/enhancements/) — individual enhancement specifications
