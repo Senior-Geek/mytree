@@ -43,6 +43,7 @@ tracked. Re-run the symlink/copy step after a fresh checkout.
 | Module | Purpose | Spec |
 |---|---|---|
 | [`mytree-identity`](mytree-identity/) | MyTree header (Help, Settings, Account menus), wordmark, favicons, titles, footer attribution, About page | [UI-001](../docs/enhancements/UI-001-identity-and-navigation.md) |
+| [`mytree-lists`](mytree-lists/) | Individuals and Families lists show the records at once: search on top, records, count / paging / rows per page below; list state kept | [UI-002](../docs/enhancements/UI-002-searchable-lists.md) |
 | [`mytree-theme`](mytree-theme/) | The MyTree theme (existing webtrees look, MyTree header layout, compact phone header) | [UI-001](../docs/enhancements/UI-001-identity-and-navigation.md) |
 
 The Docker dev environment mounts each module into `modules_v4/` itself

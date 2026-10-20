@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Http\Routing\Route;
+use Fisharebest\Webtrees\Module\FamilyListModule;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\ModuleService;
+use Fisharebest\Webtrees\Validator;
+use Fisharebest\Webtrees\View;
+use MyTree\Lists\ListsModule;
+use Psr\Http\Message\ServerRequestInterface;
+
+/**
+ * Replaces the core view "modules/individual-list/page" (registered in
+ * ListsModule::boot()), the page of both the individual and family lists.
+ * Renders the core page - in the "All" view without the A-Z options - and
+ * adds this module's stylesheet, script and the labels the script uses.
+ *
+ * All data passed to this view is forwarded to the core view.
+ *
+ * @var string $content
+ */
+
+$core_data = get_defined_vars();
+
+$lists    = Registry::container()->get(ModuleService::class)->findByInterface(ListsModule::class)->first();
+$request  = Registry::container()->get(ServerRequestInterface::class);
+$all      = Validator::queryParams($request)->string('show_all', '') === 'yes';
+$route    = $request->getAttribute('route');
+$families = $route instanceof Route && is_a($route->controller, FamilyListModule::class, true);
+
+if ($all && $lists instanceof ListsModule) {
+    $core_data['content'] = $lists->removeOptions($content);
+    // The complete list is the default view, so its heading needs no "— All".
+    $core_data['title']   = $lists->heading($families);
+    $labels               = $lists->labels($families);
+}
+
+?>
+<div
+    class="mytree-lists<?= $all ? ' mytree-all-list' : '' ?>"
+    <?php if (isset($labels)) : ?>
+        data-mytree-search="<?= e($labels['search']) ?>"
+        data-mytree-rows="<?= e($labels['rows']) ?>"
+    <?php endif ?>
+>
+    <?= view('::modules/individual-list/page', $core_data) ?>
+</div>
+
+<?php if ($lists instanceof ListsModule) : ?>
+    <?php View::push('styles') ?>
+    <link rel="stylesheet" href="<?= e($lists->assetUrl('css/mytree-lists.css')) ?>">
+    <?php View::endpush() ?>
+
+    <?php View::push('javascript') ?>
+    <script src="<?= e($lists->assetUrl('js/mytree-lists.js')) ?>"></script>
+    <?php View::endpush() ?>
+<?php endif ?>

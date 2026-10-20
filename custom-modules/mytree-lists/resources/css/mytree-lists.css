@@ -1,0 +1,120 @@
+/*
+ * MyTree searchable lists (UI-002). Loaded only on the individual and family lists.
+ * Layout: search box and filter buttons / records / count, paging, rows per page.
+ * DataTables' Bootstrap 5 layout: .dt-container > .row (search) ... .row.dt-layout-table ... .row (bottom).
+ */
+
+/* In the "All" view every given name is already shown: the given-name initials add nothing. */
+.mytree-all-list h2.wt-page-title:has(+ .wt-initials-list-given-names),
+.mytree-all-list .wt-initials-list-given-names {
+    display: none;
+}
+
+/* Above the records: the search box (about a third of the width) with the
+   filter buttons beside it, wrapping naturally on narrower screens. */
+.mytree-all-list .mytree-search-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+}
+
+.mytree-all-list .mytree-search-row > .dt-layout-full {
+    flex: 0 1 33%;
+    width: auto;
+    min-width: 15rem;
+    max-width: 100%;
+    padding-right: 0;
+}
+
+.mytree-all-list div.dt-container div.dt-search,
+.mytree-all-list div.dt-container div.dt-search label {
+    display: block;
+    width: 100%;
+}
+
+.mytree-all-list div.dt-container div.dt-search input {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-left: 0;
+    font-size: 1.125rem;
+}
+
+.mytree-all-list .mytree-search-row > .wt-table-filters {
+    flex: 1 1 0;
+    min-width: min(100%, 20rem);
+    justify-content: flex-start;
+    gap: 0.5rem 1rem;
+    margin: 0;
+    padding: 0 calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+}
+
+/* Wide tables scroll inside their own box, never the whole page. */
+.mytree-lists .dt-layout-table > div {
+    overflow-x: auto;
+}
+
+/* Below the records: count, paging, rows per page - on one line where there's room. */
+.mytree-all-list .dt-container > .row:last-child > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+.mytree-all-list div.dt-container div.dt-paging {
+    margin: 0 auto;
+}
+
+.mytree-all-list div.dt-container div.dt-length,
+.mytree-all-list div.dt-container div.dt-length label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.mytree-all-list div.dt-container div.dt-length select {
+    min-height: 44px;
+}
+
+@media (max-width: 767.98px) {
+    /* Phones: full-width search, filters underneath. */
+    .mytree-all-list .mytree-search-row > .dt-layout-full,
+    .mytree-all-list .mytree-search-row > .wt-table-filters {
+        flex: 0 0 100%;
+        min-width: 0;
+        padding-right: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+    }
+
+    /* Filter buttons wrap instead of widening the page. */
+    .mytree-lists .wt-table-filters {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .mytree-lists .wt-table-filters .btn-group {
+        flex-wrap: wrap;
+    }
+
+    .mytree-lists .wt-table-filters .btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    /* Count, paging and rows per page stack, centred. */
+    .mytree-all-list .dt-container > .row:last-child > div {
+        flex-direction: column;
+    }
+
+    .mytree-lists div.dt-container .dt-paging .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

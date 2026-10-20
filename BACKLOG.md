@@ -10,13 +10,16 @@ acceptance criteria, and should not be edited here.
 | WT-001 | Guided census evidence workflow *(formerly "Create person from source record")* | High | Investigated — scope revised | [docs/enhancements/WT-001-guided-census-evidence-workflow.md](docs/enhancements/WT-001-guided-census-evidence-workflow.md) |
 | WT-002 | Duplicate-aware evidence entry *(formerly "Attach existing source to person")* | High | Investigated — scope revised | [docs/enhancements/WT-002-duplicate-aware-evidence-entry.md](docs/enhancements/WT-002-duplicate-aware-evidence-entry.md) |
 | UI-001 | MyTree identity & navigation (branding, new header, upgrade mechanism disabled) | High | Done (2026-10-20) | [docs/enhancements/UI-001-identity-and-navigation.md](docs/enhancements/UI-001-identity-and-navigation.md) |
+| UI-002 | Replace A–Z navigation with searchable lists (Individuals, Families) | Medium | Done (2026-10-20) | [docs/enhancements/UI-002-searchable-lists.md](docs/enhancements/UI-002-searchable-lists.md) |
 
 Both specs were revised after the Milestone 3A investigation, which found
 most of the original requirements already supported by core webtrees:
 [docs/investigations/WT-001-WT-002-workflow-review.md](docs/investigations/WT-001-WT-002-workflow-review.md).
 Implementation (Milestone 3B) is **not** authorised yet.
 UI-001 was authorised on 2026-10-20 after the branding and UI
-inventory ([docs/investigations/UI-001-identity-and-navigation.md](docs/investigations/UI-001-identity-and-navigation.md)).
+inventory ([docs/investigations/UI-001-identity-and-navigation.md](docs/investigations/UI-001-identity-and-navigation.md));
+UI-002 was requested on 2026-10-20 (findings:
+[docs/investigations/UI-002-searchable-lists.md](docs/investigations/UI-002-searchable-lists.md)).
 
 ## Status values
 

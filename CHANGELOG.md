@@ -16,6 +16,20 @@ tagged as either:
 ## [Unreleased]
 
 ### MyTree
+- UI-002 (searchable lists): new custom module `custom-modules/mytree-lists/`.
+  Lists → Individuals / Families show the records at once (webtrees' own
+  "All" DataTables view) instead of the A–Z selector, headed "Individuals" /
+  "Families": search box with the filter buttons beside it, records, then
+  count, paging and rows per page (10/20/50/100). No A–Z or surname-count
+  table in the list view. Search, sort, page and filters are restored when
+  returning to a list (stable table ids for DataTables' saved state); phone
+  layout without sideways page scrolling. **Core change:** the complete
+  list includes people with a blank or unknown surname, once each
+  (`AbstractIndividualListModule::individuals()`; DEVELOPMENT.md → "MyTree
+  core changes"). Tests: `e2e/tests/ui-002-lists.spec.js` (15),
+  `tests/Unit/MyTree/CompleteIndividualListTest.php` (4); baseline
+  `e2e/investigations/ui-002-lists-baseline.spec.js`; findings in
+  `docs/investigations/UI-002-searchable-lists.md`.
 - UI-001 (MyTree identity & navigation):
   - New custom modules `custom-modules/mytree-identity/` and
     `custom-modules/mytree-theme/`. The header's text links are replaced by

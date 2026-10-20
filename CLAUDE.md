@@ -83,6 +83,10 @@ asked to start it, and don't edit a spec file without discussing the change firs
   `custom-modules/mytree-identity/` and `mytree-theme/`, plus the approved core change
   disabling the webtrees upgrade mechanism (`app/MyTree/`, `app/Webtrees.php`; see
   DEVELOPMENT.md → "MyTree core changes"). Never re-enable the upgrade mechanism.
+- UI-002 (searchable Individuals/Families lists) is done (accepted 2026-10-20):
+  `custom-modules/mytree-lists/` plus an approved, isolated core change so the complete list
+  includes blank/unknown surnames (`AbstractIndividualListModule::individuals()`; see
+  DEVELOPMENT.md → "MyTree core changes").
 - WT-001 (Guided census evidence workflow) and WT-002 (Duplicate-aware evidence entry)
   were re-scoped after the Milestone 3A investigation
   (`docs/investigations/WT-001-WT-002-workflow-review.md`). Milestone 3B

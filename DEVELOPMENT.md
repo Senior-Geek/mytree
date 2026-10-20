@@ -333,8 +333,9 @@ git checkout development
 git merge upstream/main
 ```
 
-Expect conflicts in files MyTree has customized — currently `README.md` and
-`app/Webtrees.php` (see "MyTree core changes" below). Resolve `README.md` by
+Expect conflicts in files MyTree has customized — currently `README.md`,
+`app/Webtrees.php` and `app/Module/AbstractIndividualListModule.php` (see
+"MyTree core changes" below). Resolve `README.md` by
 keeping MyTree's fork-identity sections and reconciling any upstream edits to
 the "Technical architecture" content underneath them. `CHANGELOG.md` and
 `BACKLOG.md` should not conflict, since upstream does not touch them.
@@ -433,3 +434,21 @@ checks the result in the running application.
 reset to 0 (which upstream treats as "check now"), signing in, browsing and
 opening the control panel left it at 0, and the three upgrade URLs returned
 404 for a visitor and for the administrator, by GET and POST.
+
+### UI-002: complete individual list includes people without a surname
+
+The Individuals and Families lists open on webtrees' "All" view
+(`custom-modules/mytree-lists/`). Upstream that view leaves out people whose
+surname is blank (`Mary`) or unknown (`Mary //`, stored as `@N.N.`); a
+module can't change the query.
+
+| File | Change |
+|---|---|
+| `app/Module/AbstractIndividualListModule.php`, `individuals()` (marked `MyTree (UI-002)`) | For the complete list (`$surns_to_show === []`): no longer excludes `''` and `@N.N.`; orders by `n_num` and lists each individual once, under their first name record. Surname (A–Z) views are unchanged. Families use the same query, so families with such a spouse are included too. |
+
+**Merging upstream:** if `individuals()` conflicts, keep upstream's code and
+re-apply the marked block: drop the `whereNotIn` for the empty-surname case,
+order by `n_num`, and skip an individual already listed.
+`tests/Unit/MyTree/CompleteIndividualListTest.php` (using `tests/data/demo.ged`)
+fails if blank/unknown surnames go missing, an individual appears twice, or
+the surname views change.

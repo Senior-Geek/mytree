@@ -29,6 +29,7 @@ services:
       - mytree-modules:/var/www/html/modules_v4
       - ../custom-modules/mytree-identity:/var/www/html/modules_v4/mytree-identity:ro
       - ../custom-modules/mytree-theme:/var/www/html/modules_v4/mytree-theme:ro
+      - ../custom-modules/mytree-lists:/var/www/html/modules_v4/mytree-lists:ro
     restart: unless-stopped
 
   # Build tools: PHP CLI with the extensions composer.json needs, Composer 2, Node 22/npm.

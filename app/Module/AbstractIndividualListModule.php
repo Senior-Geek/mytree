@@ -701,8 +701,14 @@ abstract class AbstractIndividualListModule extends AbstractModule implements Mo
         $this->whereFamily($fams, $query);
         $this->whereMarriedName($marnm, $query);
 
-        if ($surns_to_show === []) {
-            $query->whereNotIn('n_surn', ['', '@N.N.']);
+        // MyTree (UI-002): the complete list ($surns_to_show === []) includes blank and
+        // unknown surnames, one row per individual (its first listed name). Upstream
+        // excludes '' and '@N.N.' here. See DEVELOPMENT.md → "MyTree core changes".
+        $complete_list = $surns_to_show === [];
+        $listed        = [];
+
+        if ($complete_list) {
+            $query->orderBy('n_num');
         } else {
             $query->whereIn(DB::binaryColumn('n_surn'), $surns_to_show);
         }
@@ -710,6 +716,10 @@ abstract class AbstractIndividualListModule extends AbstractModule implements Mo
         $individuals = new Collection();
 
         foreach ($query->get() as $row) {
+            if ($complete_list && isset($listed[$row->xref])) {
+                continue;
+            }
+
             $individual = Registry::individualFactory()->make($row->xref, $tree, $row->gedcom);
             assert($individual instanceof Individual);
 
@@ -722,6 +732,7 @@ abstract class AbstractIndividualListModule extends AbstractModule implements Mo
                         // same individual in this list, and the "primary name" would otherwise
                         // be shared amongst all of them.
                         $individuals->push(clone $individual);
+                        $listed[$row->xref] = true;
                         break;
                     }
                 }
