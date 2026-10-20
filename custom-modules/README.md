@@ -38,4 +38,12 @@ cp -r "custom-modules/mytree-<module-name>" "modules_v4/mytree-<module-name>"
 Either way, `modules_v4/` itself stays git-ignored — only `custom-modules/` is
 tracked. Re-run the symlink/copy step after a fresh checkout.
 
-This directory is currently empty: no MyTree module has been implemented yet.
+## Modules
+
+| Module | Purpose | Spec |
+|---|---|---|
+| [`mytree-identity`](mytree-identity/) | MyTree header (Help, Settings, Account menus), wordmark, favicons, titles, footer attribution, About page | [UI-001](../docs/enhancements/UI-001-identity-and-navigation.md) |
+| [`mytree-theme`](mytree-theme/) | The MyTree theme (existing webtrees look, MyTree header layout, compact phone header) | [UI-001](../docs/enhancements/UI-001-identity-and-navigation.md) |
+
+The Docker dev environment mounts each module into `modules_v4/` itself
+(`docker/docker-compose.yml`); the symlinks above are for a non-Docker setup.

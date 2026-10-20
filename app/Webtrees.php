@@ -54,7 +54,6 @@ use Fisharebest\Webtrees\Http\Middleware\BadBotBlocker;
 use Fisharebest\Webtrees\Http\Middleware\BaseUrl;
 use Fisharebest\Webtrees\Http\Middleware\BootModules;
 use Fisharebest\Webtrees\Http\Middleware\CheckForMaintenanceMode;
-use Fisharebest\Webtrees\Http\Middleware\CheckForNewVersion;
 use Fisharebest\Webtrees\Http\Middleware\ClientIp;
 use Fisharebest\Webtrees\Http\Middleware\CompressResponse;
 use Fisharebest\Webtrees\Http\Middleware\ContentLength;
@@ -75,7 +74,10 @@ use Fisharebest\Webtrees\Http\Middleware\UseLanguage;
 use Fisharebest\Webtrees\Http\Middleware\UseSession;
 use Fisharebest\Webtrees\Http\Middleware\UseTheme;
 use Fisharebest\Webtrees\Http\Middleware\UseTransaction;
+use Fisharebest\Webtrees\MyTree\DisabledUpgradeService;
+use Fisharebest\Webtrees\MyTree\DisableUpgrades;
 use Fisharebest\Webtrees\Services\PhpService;
+use Fisharebest\Webtrees\Services\UpgradeService;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Client\ClientInterface;
@@ -174,8 +176,10 @@ class Webtrees
         DoHousekeeping::class,
         HandleApplicationExceptions::class,
         UseTransaction::class,
-        CheckForNewVersion::class,
+        // MyTree: CheckForNewVersion removed (no automatic version checks); the
+        // upgrade routes are disabled once they are loaded. See app/MyTree/.
         LoadRoutes::class,
+        DisableUpgrades::class,
         RegisterGedcomTags::class,
         BootModules::class,
         Router::class,
@@ -240,7 +244,9 @@ class Webtrees
             ->bind(ServerRequestFactoryInterface::class, Psr17Factory::class)
             ->bind(StreamFactoryInterface::class, Psr17Factory::class)
             ->bind(UploadedFileFactoryInterface::class, Psr17Factory::class)
-            ->bind(UriFactoryInterface::class, Psr17Factory::class);
+            ->bind(UriFactoryInterface::class, Psr17Factory::class)
+            // MyTree: the webtrees upgrade mechanism is disabled. See app/MyTree/.
+            ->bind(UpgradeService::class, DisabledUpgradeService::class);
 
         stream_filter_register(GedcomEncodingFilter::class, GedcomEncodingFilter::class);
 

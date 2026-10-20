@@ -159,6 +159,22 @@ previous Mac workspace's fictional dev database.
    `ln -s ../custom-modules/mytree-<name> modules_v4/mytree-<name>`.
    New modules are enabled automatically. The `e2e/` regression suite
    expects them.
+9. **Apply the MyTree identity settings (UI-001).** The same steps apply to
+   any MyTree installation, including production:
+   * default theme: `php index.php site-setting THEME_DIR _mytree-theme_`
+     (Docker: `docker compose -f docker/docker-compose.yml exec -u www-data mytree php index.php site-setting THEME_DIR _mytree-theme_`),
+     or Control Panel → Website preferences → Default theme → MyTree;
+   * email sender name: `site-setting SMTP_DISP_NAME MyTree`, or Control
+     Panel → Sending email → Sender name;
+   * Control Panel → Modules → All modules: disable **webtrees** (theme),
+     **Powered by webtrees™** (footer) and **Check for new version**.
+
+   The upgrade mechanism itself is disabled in code, whatever these settings
+   say (see "MyTree core changes" below). The `e2e/` setup also creates
+   fictional *member*, *editor*, *moderator* and *treeadmin* accounts (Viewer,
+   Editor, Moderator and Tree Administrator; `e2e/fixtures/testData.js`) for the permission tests.
+   The registration test switches "Allow visitors to request a new user
+   account" off and back on.
 
 By default (and for any *other* user you create), webtrees queues edits as a
 **pending change** requiring explicit acceptance (Control Panel → the tree →
@@ -167,6 +183,30 @@ to a just-edited record) before they're visible elsewhere in the app (stats,
 search, other views). With step 7 done, the dev admin's edits skip this and
 apply immediately — verified by creating a test individual and confirming no
 pending-change banner appeared.
+
+### Your own administrator account
+
+Create personal accounts through webtrees' own *Add a user* page, so the
+password is typed only into the browser form: it travels in the POST body,
+is stored hashed, and isn't written to webtrees' logs (which record only the
+username) or Apache's access log. Don't use the `user-edit` CLI command for
+this: it takes the password as a command-line argument (shell history,
+process list) and prints it back.
+
+1. On the Mac, in your own terminal, open an SSH tunnel and leave it running,
+   so the password never crosses the network in plain HTTP:
+   `ssh -N -L 8081:localhost:8081 <nas>`
+2. Open <http://localhost:8081>, sign in as the fictional `admin`
+   (`e2e/fixtures/testData.js`), then **Settings → User management → Add a
+   user**. Choose a username, name and email; type your password in the
+   form only.
+3. On the edit page that follows, tick **Email verified**, **Approved by
+   administrator** and **Administrator**; optionally **Automatically accept
+   changes**. Save.
+4. **Account → Sign out**, then sign in as yourself. The Account menu should
+   read "<username> · Site Administrator".
+
+Keep the fictional `admin` account: the `e2e/` suite signs in with it.
 
 ### Starting, stopping, and resetting the dev install
 
@@ -293,15 +333,17 @@ git checkout development
 git merge upstream/main
 ```
 
-Expect conflicts in files MyTree has customized — currently `README.md`.
-Resolve by keeping MyTree's fork-identity sections and reconciling any
-upstream edits to the "Technical architecture" content underneath them.
-`CHANGELOG.md` and `BACKLOG.md` should not conflict, since upstream does not
-touch them.
+Expect conflicts in files MyTree has customized — currently `README.md` and
+`app/Webtrees.php` (see "MyTree core changes" below). Resolve `README.md` by
+keeping MyTree's fork-identity sections and reconciling any upstream edits to
+the "Technical architecture" content underneath them. `CHANGELOG.md` and
+`BACKLOG.md` should not conflict, since upstream does not touch them.
 
 After a successful sync:
 
-* Run `docker/dev ci` and `docker/dev e2e` to confirm nothing broke.
+* Run `docker/dev ci` and `docker/dev e2e` to confirm nothing broke. The
+  UI-001 tests check that the MyTree header, branding and upgrade lockdown
+  still apply to the upstream layouts and middleware.
 * Add an "Upstream sync" entry to `CHANGELOG.md` recording the commit range
   (see the template at the bottom of that file) rather than copying
   upstream's own log.
@@ -354,3 +396,40 @@ deployed into `modules_v4/` by bind mount (the Docker dev instance), symlink
 [custom-modules/README.md](custom-modules/README.md) for the exact commands.
 `modules_v4/` itself remains untouched and git-ignored, exactly as upstream
 intends.
+
+## MyTree core changes
+
+MyTree prefers modules, view wrappers, translations and settings to edits in
+`app/`. These are the exceptions, each approved for a specific reason. Keep
+the list current; review each one when merging upstream.
+
+### UI-001: webtrees upgrade mechanism disabled
+
+MyTree is updated through Git, Composer and Docker, never by downloading an
+upstream release over itself. webtrees checks `dev.webtrees.net` for a new
+version on every page view (once a day), in core middleware that runs before
+any module loads, so a module cannot prevent it.
+
+| File | Change |
+|---|---|
+| `app/MyTree/DisabledUpgradeService.php` (new) | Subclass of `UpgradeService`: never reports an upgrade, never contacts the network (its HTTP client refuses every request), refuses to download, unpack, move or delete files |
+| `app/MyTree/DisableUpgrades.php` (new) | Middleware after `LoadRoutes`: re-registers `/admin/upgrade`, `/admin/upgrade-action` and `/admin/check-now` behind a refusal, so they return 404 for everyone |
+| `app/Webtrees.php` | Binds `UpgradeService` to `DisabledUpgradeService`; removes `CheckForNewVersion` from the middleware stack and adds `DisableUpgrades` after `LoadRoutes` (each marked `MyTree:`) |
+
+`UpgradeService.php`, `WebRoutes.php`, the controllers and upstream's tests
+are unchanged. The control panel's version line then reads "No upgrade
+information is available", which `mytree-identity` rewords; the "Check for
+new version" module is disabled in settings and, being given the disabled
+service, could not send anything anyway.
+
+**Merging upstream:** if `app/Webtrees.php` conflicts, keep the `MyTree:`
+lines. If upstream adds a new consumer of the upgrade mechanism, adds or
+renames upgrade routes, or changes `UpgradeService`'s public methods, update
+`app/MyTree/`. `tests/Unit/MyTree/` fails if the binding, the middleware
+order or the route lockdown is lost, and `e2e/tests/ui-001-identity.spec.js`
+checks the result in the running application.
+
+**Verified 2026-10-20** on the dev instance: with the last-check timestamp
+reset to 0 (which upstream treats as "check now"), signing in, browsing and
+opening the control panel left it at 0, and the three upgrade URLs returned
+404 for a visitor and for the administrator, by GET and POST.

@@ -16,6 +16,37 @@ tagged as either:
 ## [Unreleased]
 
 ### MyTree
+- UI-001 (MyTree identity & navigation):
+  - New custom modules `custom-modules/mytree-identity/` and
+    `custom-modules/mytree-theme/`. The header's text links are replaced by
+    Help, Settings and Account menus after the search box; unavailable options
+    are greyed with the reason shown; compact phone layout. MyTree wordmark,
+    favicons, "– MyTree" page titles, a "based on webtrees" footer and an
+    About MyTree page; the MyTree theme keeps the existing look. The core
+    layouts are wrapped, not copied.
+  - **Core change:** the webtrees upgrade mechanism is disabled — no version
+    checks with dev.webtrees.net, no upgrade wizard (its routes return 404),
+    and the upgrade service refuses to download or install. New
+    `app/MyTree/`, plus `app/Webtrees.php`; see DEVELOPMENT.md → "MyTree core
+    changes".
+  - Settings: MyTree default theme; the webtrees theme, "Powered by
+    webtrees" footer and "Check for new version" module disabled; email
+    sender name MyTree.
+  - Accounts and roles: the Account menu shows the signed-in user and their
+    role, or Sign in / Create an account (following the site's registration
+    setting); Settings links to user management, sign-in and registration,
+    and tree access and privacy for those allowed. MyTree names for the
+    webtrees roles (Viewer, Editor, Moderator, Tree Administrator, Site Administrator)
+    on a Roles and permissions page and in the user editor. Presentation
+    only — no authorization changes.
+  - Tests: `tests/Unit/MyTree/` (12 PHPUnit tests),
+    `e2e/tests/ui-001-identity.spec.js` (23) and
+    `e2e/tests/ui-001-accounts.spec.js` (25 Playwright tests, including
+    direct-request checks that each role is refused what it may not do). The
+    e2e setup now creates fictional viewer, editor, moderator and tree
+    administrator accounts. Upstream baseline recorded in
+    `e2e/investigations/ui-001-identity-baseline.spec.js`; findings in
+    `docs/investigations/UI-001-identity-and-navigation.md`.
 - Development environment: the working copy moved to a NAS and is developed
   with Docker (`docker/`): an Apache/PHP dev instance on port 8081 with its
   own data volume (never the checkout's `data/`), a tools container (PHP,

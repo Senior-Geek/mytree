@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use MyTree\Identity\IdentityModule;
+
+/**
+ * The MyTree wordmark: tree mark + name, linking to the home page.
+ *
+ * @var string $url
+ */
+
+?>
+<a class="mytree-brand" href="<?= e($url) ?>" title="<?= I18N::translate('Home page') ?>">
+    <?= view(IdentityModule::VIEW_NAMESPACE . '::icons/tree') ?>
+    <span class="mytree-brand-name"><?= IdentityModule::NAME ?></span>
+</a>

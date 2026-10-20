@@ -1,0 +1,122 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use MyTree\Identity\IdentityModule;
+
+/**
+ * The MyTree header controls - Help, Settings, Account - which replace the
+ * core header's row of text links. The quick-search form stays where the
+ * core layout puts it, immediately before these controls.
+ *
+ * Keeps the core list classes ("nav wt-user-menu") so every theme positions
+ * it as it positioned the old menu. Entries come from HeaderMenus.
+ *
+ * @var list<array<string,mixed>> $help
+ * @var list<array<string,mixed>> $settings
+ * @var list<array<string,mixed>> $account
+ * @var bool                      $pending
+ * @var bool                      $signed_in
+ */
+
+$menus = [
+    [
+        'id'         => 'mytree-help',
+        'icon'       => 'help',
+        'label'      => I18N::translate('Help'),
+        'entries'    => $help,
+        'auto_close' => 'true',
+        'badge'      => '',
+    ],
+    [
+        'id'         => 'mytree-settings',
+        'icon'       => 'settings',
+        'label'      => I18N::translate('Settings'),
+        'entries'    => $settings,
+        // The theme and language lists expand inside the menu.
+        'auto_close' => 'outside',
+        'badge'      => '',
+    ],
+    [
+        'id'         => 'mytree-account',
+        'icon'       => 'account',
+        // Not "Sign in" / "My account": those name the items inside the menu
+        // (and the sign-in form's own button).
+        'label'      => I18N::translate('Account'),
+        'entries'    => $account,
+        'auto_close' => 'true',
+        'badge'      => $pending ? I18N::translate('Pending changes') : '',
+    ],
+];
+
+?>
+<ul class="nav wt-user-menu mytree-header-controls" aria-label="<?= I18N::translate('Help, settings and account') ?>">
+    <?php foreach ($menus as $menu) : ?>
+        <li class="nav-item dropdown <?= $menu['id'] ?>">
+            <button
+                type="button"
+                class="mytree-icon-button"
+                id="<?= $menu['id'] ?>-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="<?= $menu['auto_close'] ?>"
+                aria-expanded="false"
+                title="<?= e($menu['label']) ?>"
+            >
+                <?= view(IdentityModule::VIEW_NAMESPACE . '::icons/' . $menu['icon']) ?>
+                <span class="visually-hidden"><?= e($menu['label']) ?></span>
+                <?php if ($menu['badge'] !== '') : ?>
+                    <span class="mytree-badge" aria-hidden="true"></span>
+                    <span class="visually-hidden">(<?= e($menu['badge']) ?>)</span>
+                <?php endif ?>
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end mytree-dropdown" aria-labelledby="<?= $menu['id'] ?>-toggle">
+                <?php foreach ($menu['entries'] as $entry) : ?>
+                    <?php if ($entry['type'] === 'header') : ?>
+                        <h2 class="dropdown-header"><?= e($entry['label']) ?></h2>
+
+                    <?php elseif ($entry['type'] === 'identity') : ?>
+                        <div class="mytree-identity-line">
+                            <h2 class="mytree-identity-name"><?= e($entry['name']) ?></h2>
+                            <span class="mytree-identity-detail"><?= e($entry['detail']) ?></span>
+                        </div>
+
+                    <?php elseif ($entry['type'] === 'divider') : ?>
+                        <hr class="dropdown-divider">
+
+                    <?php elseif ($entry['type'] === 'link') : ?>
+                        <?= view(IdentityModule::VIEW_NAMESPACE . '::header/link', ['entry' => $entry]) ?>
+
+                    <?php elseif ($entry['type'] === 'disabled') : ?>
+                        <?php /* Focusable (so keyboard and screen-reader users reach the explanation) but inert. */ ?>
+                        <button type="button" class="dropdown-item mytree-unavailable" aria-disabled="true" aria-describedby="<?= e($entry['id']) ?>" title="<?= e($entry['hint']) ?>">
+                            <span><?= e($entry['label']) ?></span>
+                            <small class="mytree-hint" id="<?= e($entry['id']) ?>"><?= e($entry['hint']) ?></small>
+                        </button>
+
+                    <?php elseif ($entry['type'] === 'choices') : ?>
+                        <button
+                            type="button"
+                            class="dropdown-item mytree-choices-toggle"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#<?= e($entry['id']) ?>"
+                            aria-expanded="false"
+                            aria-controls="<?= e($entry['id']) ?>"
+                        >
+                            <span><?= e($entry['label']) ?></span>
+                            <span class="mytree-current"><?= e($entry['current']) ?></span>
+                        </button>
+                        <div class="collapse" id="<?= e($entry['id']) ?>">
+                            <div class="mytree-choices">
+                                <?php foreach ($entry['items'] as $item) : ?>
+                                    <?= view(IdentityModule::VIEW_NAMESPACE . '::header/link', ['entry' => $item]) ?>
+                                <?php endforeach ?>
+                            </div>
+                        </div>
+                    <?php endif ?>
+                <?php endforeach ?>
+            </div>
+        </li>
+    <?php endforeach ?>
+</ul>

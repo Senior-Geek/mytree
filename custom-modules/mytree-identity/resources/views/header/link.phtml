@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * One link in a MyTree header dropdown. Attributes (e.g. data-wt-post-url for
+ * sign-out, theme and language) are passed through from the core menu item.
+ *
+ * @var array{label:string,url:string,class:string,attrs:array<string,string>,active?:bool,note?:string} $entry
+ */
+
+$active = $entry['active'] ?? false;
+$note   = $entry['note'] ?? '';
+
+?>
+<a
+    class="dropdown-item <?= e($entry['class']) ?><?= $note !== '' ? ' mytree-with-note' : '' ?>"
+    href="<?= e($entry['url']) ?>"
+    <?php foreach ($entry['attrs'] as $key => $value) : ?>
+        <?= e($key) ?>="<?= e($value) ?>"
+    <?php endforeach ?>
+    <?php if ($active) : ?>
+        aria-current="true"
+    <?php endif ?>
+>
+    <?php if ($note !== '') : ?>
+        <span><?= $entry['label'] ?></span>
+        <small class="mytree-hint"><?= e($note) ?></small>
+    <?php else : ?>
+        <?= $entry['label'] ?>
+    <?php endif ?>
+</a>

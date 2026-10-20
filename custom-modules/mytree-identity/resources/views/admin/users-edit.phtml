@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use MyTree\Identity\IdentityModule;
+use MyTree\Identity\RoleNames;
+
+/**
+ * Replaces the core view "admin/users-edit" (registered in IdentityModule::boot()).
+ * Renders the core page unchanged, then adds MyTree's role names after the
+ * "Access to family trees" heading (the page's only <h3>), where the roles
+ * are assigned. If that heading moves upstream, the note is left out.
+ *
+ * All data passed to this view is forwarded to the core view as-is.
+ */
+
+$core_data = get_defined_vars();
+$html      = view('::admin/users-edit', $core_data);
+$position  = strpos($html, '</h3>');
+
+if ($position !== false) {
+    $note = view(IdentityModule::VIEW_NAMESPACE . '::admin/role-names', ['roles' => (new RoleNames())->all()]);
+    $html = substr($html, 0, $position + 5) . $note . substr($html, $position + 5);
+}
+
+?>
+<?= $html ?>

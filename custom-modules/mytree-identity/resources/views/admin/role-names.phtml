@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * MyTree's names for the roles assigned on this page.
+ *
+ * @var array<string,array{0:string,1:string,2:string}> $roles
+ */
+
+?>
+<div class="alert alert-info mytree-role-names">
+    <p class="mb-1"><?= I18N::translate('MyTree names for these roles (the permissions are unchanged):') ?></p>
+    <ul class="mb-0">
+        <?php foreach ($roles as [$label, $webtrees]) : ?>
+            <li><strong><?= e($label) ?></strong> = <?= e($webtrees) ?></li>
+        <?php endforeach ?>
+    </ul>
+</div>

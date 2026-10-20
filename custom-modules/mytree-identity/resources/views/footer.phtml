@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use MyTree\Identity\IdentityModule;
+
+/**
+ * Footer attribution, replacing the "Powered by webtrees" logo footer.
+ *
+ * @var string $about_url
+ */
+
+?>
+<div class="wt-footer mytree-footer text-center my-2">
+    <?= I18N::translate(
+        '%1$s is based on %2$s, free software licensed under the GNU GPL.',
+        '<a href="' . e($about_url) . '">' . IdentityModule::NAME . '</a>',
+        '<a href="https://webtrees.net/" dir="ltr">webtrees</a>'
+    ) ?>
+</div>

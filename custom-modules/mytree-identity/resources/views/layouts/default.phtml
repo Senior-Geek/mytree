@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\ModuleService;
+use Fisharebest\Webtrees\Tree;
+use MyTree\Identity\IdentityModule;
+
+/**
+ * Replaces the core view "layouts/default" (registered in IdentityModule::boot()).
+ * It renders the core layout unchanged - the leading "::" bypasses the
+ * replacement, so it cannot recurse - then applies the MyTree header, logo,
+ * title and favicons to that HTML (see LayoutRewriter).
+ *
+ * All data passed to this view is forwarded to the core view as-is.
+ *
+ * @var Tree|null $tree
+ */
+
+$core_data = get_defined_vars();
+
+$identity = Registry::container()->get(ModuleService::class)->findByInterface(IdentityModule::class)->first();
+$html     = view('::layouts/default', $core_data);
+
+?>
+<?= $identity instanceof IdentityModule ? $identity->rewriteDefaultLayout($html, $tree ?? null) : $html ?>

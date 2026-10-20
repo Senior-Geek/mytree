@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * Roles and permissions (read-only).
+ *
+ * @var string                                         $title
+ * @var array<string,array{0:string,1:string,2:string}> $roles
+ * @var list<array{tree:string,role:string,webtrees:string}> $my_roles
+ * @var bool                                           $signed_in
+ * @var bool                                           $is_admin
+ * @var string                                         $users_url
+ * @var string                                         $privacy_url
+ */
+
+?>
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<div class="mytree-roles mx-auto">
+    <h3><?= I18N::translate('Your access') ?></h3>
+
+    <?php if (!$signed_in) : ?>
+        <p><?= I18N::translate('You are not signed in, so you see only what each family tree shows to visitors.') ?></p>
+    <?php elseif ($my_roles === []) : ?>
+        <p><?= I18N::translate('You don’t have a role in any family tree yet. Ask the site administrator for access.') ?></p>
+    <?php else : ?>
+        <table class="table table-sm mytree-my-roles">
+            <thead>
+                <tr>
+                    <th scope="col"><?= I18N::translate('Family tree') ?></th>
+                    <th scope="col"><?= I18N::translate('Your role') ?></th>
+                    <th scope="col"><?= I18N::translate('webtrees role') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($my_roles as $my_role) : ?>
+                    <tr>
+                        <td><?= e($my_role['tree']) ?></td>
+                        <td><?= e($my_role['role']) ?></td>
+                        <td><?= e($my_role['webtrees']) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+
+    <h3><?= I18N::translate('Roles') ?></h3>
+    <p>
+        <?= I18N::translate('MyTree uses simpler names for the webtrees roles. The permissions are exactly those of the webtrees role, and each family tree’s privacy settings still decide which records each role can see. Roles are assigned per family tree; a site administrator has full access everywhere.') ?>
+    </p>
+    <table class="table table-sm mytree-role-table">
+        <thead>
+            <tr>
+                <th scope="col"><?= I18N::translate('Role') ?></th>
+                <th scope="col"><?= I18N::translate('What it allows') ?></th>
+                <th scope="col"><?= I18N::translate('webtrees role') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($roles as [$label, $webtrees, $description]) : ?>
+                <tr>
+                    <th scope="row"><?= e($label) ?></th>
+                    <td><?= e($description) ?></td>
+                    <td><?= e($webtrees) ?></td>
+                </tr>
+            <?php endforeach ?>
+        </tbody>
+    </table>
+
+    <h3><?= I18N::translate('Changing access') ?></h3>
+    <?php if ($is_admin) : ?>
+        <p>
+            <?= I18N::translate('Assign roles in %s: edit a user, then choose a role for each family tree, or tick “Administrator” for a site administrator. Untick “Approved by administrator” to disable an account.', '<a href="' . e($users_url) . '">' . I18N::translate('User management') . '</a>') ?>
+        </p>
+    <?php else : ?>
+        <p><?= I18N::translate('Only a site administrator can create accounts or change anyone’s role.') ?></p>
+    <?php endif ?>
+    <?php if ($privacy_url !== '') : ?>
+        <p>
+            <?= I18N::translate('What visitors and each role can see in this family tree is set in %s.', '<a href="' . e($privacy_url) . '">' . I18N::translate('Tree access and privacy') . '</a>') ?>
+        </p>
+    <?php endif ?>
+</div>

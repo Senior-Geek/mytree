@@ -1,0 +1,111 @@
+/*
+ * MyTree theme (UI-001): loaded after the core webtrees theme stylesheet.
+ * Same colours and layout; replaces the webtrees logo with the MyTree
+ * wordmark (from the mytree-identity module) and arranges the header as
+ *   wordmark · tree title · search · Help · Settings · Account
+ * with a compact layout on phones.
+ */
+
+/* The core theme draws the webtrees logo here. */
+.wt-site-logo::after {
+    content: none;
+}
+
+.wt-header-content {
+    align-items: center;
+    row-gap: 0.25rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.wt-site-logo {
+    order: 1;
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.mytree-brand {
+    color: #555;
+}
+
+.mytree-brand .mytree-icon-tree {
+    color: #5a87b0;
+}
+
+.wt-site-title {
+    order: 2;
+    flex: 1 1 auto;
+    width: auto;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.wt-header-search {
+    order: 3;
+    flex: 0 1 16rem;
+    top: 0;
+}
+
+.wt-secondary-navigation {
+    order: 4;
+    flex: 0 0 auto;
+    width: auto;
+    margin-bottom: 0;
+}
+
+.wt-primary-navigation {
+    order: 5;
+    margin-top: 0.25rem;
+}
+
+/* Phones: wordmark and controls on one row, then the tree title, then search. */
+@media (max-width: 767.98px) {
+    .wt-site-logo {
+        flex: 1 1 auto;
+    }
+
+    .mytree-brand-name {
+        font-size: 1.375rem;
+    }
+
+    .mytree-brand .mytree-icon-tree {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .wt-secondary-navigation {
+        order: 2;
+        padding-left: 0;
+    }
+
+    .wt-site-title {
+        order: 3;
+        flex: 0 0 100%;
+        font-size: 1.0625rem;
+    }
+
+    .wt-header-search {
+        order: 4;
+        flex: 0 0 100%;
+    }
+
+    /* Genealogy menu: text only, wrapping, with comfortable touch targets. */
+    .wt-genealogy-menu {
+        column-gap: 0.25rem;
+    }
+
+    .wt-genealogy-menu .nav-item {
+        min-width: 0;
+    }
+
+    .wt-genealogy-menu > .nav-item > .nav-link {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .wt-genealogy-menu > .nav-item > .nav-link::before {
+        display: none;
+    }
+}

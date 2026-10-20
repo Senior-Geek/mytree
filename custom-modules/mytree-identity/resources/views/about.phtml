@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use MyTree\Identity\IdentityModule;
+
+/**
+ * About MyTree: what it is, its upstream, licence and credits.
+ *
+ * @var string $title
+ * @var string $webtrees_version
+ */
+
+?>
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<div class="mytree-about mx-auto">
+    <p class="mytree-about-brand">
+        <?= view(IdentityModule::VIEW_NAMESPACE . '::icons/tree') ?>
+        <span class="mytree-brand-name"><?= IdentityModule::NAME ?></span>
+    </p>
+
+    <p>
+        <?= I18N::translate('%s is a personal genealogy application for researching, recording and sharing a family history.', IdentityModule::NAME) ?>
+    </p>
+
+    <h3><?= I18N::translate('Based on webtrees') ?></h3>
+    <p>
+        <?= I18N::translate(
+            '%1$s is a modified version of %2$s %3$s, created by the webtrees development team.',
+            IdentityModule::NAME,
+            '<a href="https://webtrees.net/" dir="ltr">webtrees</a>',
+            '<span dir="ltr">' . e($webtrees_version) . '</span>'
+        ) ?>
+        <?= I18N::translate('webtrees is a trademark of the webtrees development team. %s is not endorsed by them.', IdentityModule::NAME) ?>
+    </p>
+
+    <h3><?= I18N::translate('Licence') ?></h3>
+    <p>
+        <?= I18N::translate(
+            'webtrees and %1$s are free software: you can redistribute and/or modify them under the terms of the %2$s, version 3 or (at your option) any later version. They are distributed without any warranty.',
+            IdentityModule::NAME,
+            '<a href="https://www.gnu.org/licenses/gpl-3.0.html">' . I18N::translate('GNU General Public License') . '</a>'
+        ) ?>
+    </p>
+    <p>
+        <?= I18N::translate('The webtrees source code is available from %s.', '<a href="https://github.com/fisharebest/webtrees" dir="ltr">github.com/fisharebest/webtrees</a>') ?>
+    </p>
+
+    <h3><?= I18N::translate('Third-party components') ?></h3>
+    <p>
+        <?= I18N::translate('This application includes third-party software, such as Bootstrap, Leaflet, Tom Select and TinyMCE, each distributed under its own licence. Map data and tiles are credited on the maps that use them.') ?>
+    </p>
+
+    <h3><?= I18N::translate('Updates') ?></h3>
+    <p>
+        <?= I18N::translate('The webtrees online upgrade is disabled: an upstream release would replace %s. Updates are made through the %s development workflow.', IdentityModule::NAME, IdentityModule::NAME) ?>
+    </p>
+</div>
