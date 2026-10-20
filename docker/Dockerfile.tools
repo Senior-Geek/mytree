@@ -1,0 +1,32 @@
+# MyTree build tools: PHP CLI + Composer 2 + Node 22/npm, so nothing needs to be
+# installed on the host. Used as `docker/dev composer ...`, `docker/dev npm ...`.
+ARG PHP_VERSION=8.3
+FROM composer:2 AS composer
+FROM node:22-slim AS node
+FROM php:${PHP_VERSION}-cli
+
+# Extensions required by composer.json (require + require-dev) that the base
+# image lacks: gd, intl. zip/unzip/git let Composer fetch packages.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git unzip libfreetype6-dev libicu-dev libjpeg62-turbo-dev libpng-dev libwebp-dev libzip-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j"$(nproc)" gd intl zip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# PHP's development php.ini (as Homebrew uses; notably short_open_tag = Off, which
+# the XML templates need), plus no memory limit for phpstan/phpunit.
+RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
+    && printf 'memory_limit = -1\ndate.timezone = UTC\n' > "$PHP_INI_DIR/conf.d/zz-mytree-cli.ini"
+
+# Caches live in a named volume, initialised from this world-writable folder;
+# HOME is writable for any user id.
+RUN mkdir -m 1777 /cache
+ENV COMPOSER_HOME=/cache/composer npm_config_cache=/cache/npm HOME=/tmp
+WORKDIR /work

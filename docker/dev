@@ -1,0 +1,35 @@
+#!/bin/bash
+# MyTree development helper - wraps docker compose for this checkout.
+#
+#   docker/dev up | down | restart | ps | logs [-f]   the web container (port 8081)
+#   docker/dev composer <args>                         e.g. composer install, composer ci
+#   docker/dev npm <args>                              e.g. npm ci, npm run build
+#   docker/dev php <args>                              PHP CLI
+#   docker/dev ci                                      phpcs, phpunit, phpstan (as composer ci, see below)
+#   docker/dev e2e [npm script]                        Playwright: test (default) | investigate
+#   docker/dev e2e-install                             npm ci in e2e/ (first time, or after a lockfile change)
+#   docker/dev shell                                   a shell in the tools container
+set -euo pipefail
+cd "$(dirname "$0")"
+compose() { docker compose --progress quiet "$@"; }
+cmd=${1:-}; [ $# -gt 0 ] && shift
+case "$cmd" in
+    up)          compose up -d --build mytree ;;
+    down)        compose down ;;
+    restart)     compose restart mytree ;;
+    ps)          compose ps ;;
+    logs)        compose logs "$@" mytree ;;
+    composer|npm|npx|php) compose run --rm tools "$cmd" "$@" ;;
+    e2e)         compose run --rm e2e npm run "${1:-test}" -- "${@:2}" ;;
+    e2e-install) compose run --rm e2e npm ci ;;
+    shell)       compose run --rm tools bash ;;
+    # As "composer ci", but phpcs never auto-fixes files (composer ci falls back to
+    # phpcbf), and phpunit runs without coverage (no coverage driver is installed;
+    # phpunit.xml.dist's coverage reports would otherwise make it run no tests).
+    ci)          compose run --rm tools sh -c 'rc=0
+                     echo "== phpcs";   vendor/bin/phpcs -q --report=summary || rc=1
+                     echo "== phpunit"; vendor/bin/phpunit --no-coverage --no-progress || rc=1
+                     echo "== phpstan"; vendor/bin/phpstan analyse --no-progress || rc=1
+                     exit $rc' ;;
+    *)           sed -n '2,11p' "$0"; exit 2 ;;
+esac

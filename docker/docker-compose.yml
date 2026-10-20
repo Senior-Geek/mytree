@@ -1,0 +1,69 @@
+# MyTree development environment (runs on the NAS; also works on any Docker host).
+#
+#   docker/dev up            build and start the web container  -> http://<host>:8081
+#   docker/dev composer ...  Composer / PHP / npm in the tools container
+#   docker/dev e2e           Playwright suites against the web container
+#
+# Isolation: the web container uses its OWN database/config/media (the
+# "mytree-data" volume), never the checkout's data/ and never an existing
+# webtrees installation's database. Fictional test data only.
+name: mytree-dev
+
+services:
+  # Apache + PHP serving the live checkout.
+  mytree:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "${MYTREE_PHP_VERSION:-8.3}"
+    image: mytree-dev
+    ports:
+      - "${MYTREE_PORT:-8081}:80"
+    volumes:
+      # Live checkout (dependencies built with the tools container: composer install, npm run build).
+      - ..:/var/www/html
+      # Container-only data: SQLite database, config.ini.php, cache, media.
+      - mytree-data:/var/www/html/data
+      # Replace the checkout's modules_v4/ (its symlinks are for the host), then
+      # mount each MyTree module into it.
+      - mytree-modules:/var/www/html/modules_v4
+    restart: unless-stopped
+
+  # Build tools: PHP CLI with the extensions composer.json needs, Composer 2, Node 22/npm.
+  # Runs as the checkout's owner, so files it writes (vendor/, node_modules/, public/) stay theirs.
+  tools:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: Dockerfile.tools
+      args:
+        PHP_VERSION: "${MYTREE_PHP_VERSION:-8.3}"
+    image: mytree-dev-tools
+    user: "${MYTREE_UID:-1000}:${MYTREE_GID:-1000}"
+    working_dir: /work
+    volumes:
+      - ..:/work
+      - tools-cache:/cache
+
+  # Playwright, same version as e2e/package-lock.json. Shares the web container's
+  # network, where Apache also listens on 8080 - the suites' default base URL
+  # (http://localhost:8080), so playwright.config.js needs no change.
+  e2e:
+    profiles: [tools]
+    image: "mcr.microsoft.com/playwright:v${MYTREE_PLAYWRIGHT_VERSION:-1.64.1}-noble"
+    network_mode: "service:mytree"
+    depends_on: [mytree]
+    user: "${MYTREE_UID:-1000}:${MYTREE_GID:-1000}"
+    working_dir: /work/e2e
+    init: true
+    shm_size: 1gb
+    environment:
+      HOME: /tmp
+      npm_config_cache: /tmp/npm-cache
+    volumes:
+      - ..:/work
+
+volumes:
+  mytree-data:
+  mytree-modules:
+  tools-cache:

@@ -16,6 +16,12 @@ tagged as either:
 ## [Unreleased]
 
 ### MyTree
+- Development environment: the working copy moved to a NAS and is developed
+  with Docker (`docker/`): an Apache/PHP dev instance on port 8081 with its
+  own data volume (never the checkout's `data/`), a tools container (PHP,
+  Composer, Node) and Playwright, driven by `docker/dev`. `DEVELOPMENT.md`
+  and `CLAUDE.md` describe the NAS workspace, the Docker commands and the
+  known Linux test baseline.
 - Added fork documentation: `README.md` rewritten to identify MyTree as a
   fork of webtrees with upstream attribution; added `DEVELOPMENT.md`,
   `BACKLOG.md`, and this `CHANGELOG.md`.
